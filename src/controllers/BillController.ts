@@ -3,12 +3,16 @@ import CommonModel from "../models/CommonModel"
 import { getObject } from "../utils/Helper"
 
 
-export default class UserController{
+export default class BillController{
     private commonModel
-    private IdColumn
+    private commonModelVehicle
+    private idColumn
+    private idColumnVehicle
     constructor() {
-        this.IdColumn = "userId"
-        this.commonModel = new CommonModel("users", this.IdColumn, [])
+        this.idColumn = "billId"
+        this.idColumnVehicle = "vehicleId"
+        this.commonModel = new CommonModel("bills", this.idColumn, [])
+        this.commonModelVehicle = new CommonModel("vehicles", this.idColumnVehicle, [])
         this.list = this.list.bind(this)
         this.create = this.create.bind(this)
         this.update = this.update.bind(this)
@@ -22,19 +26,19 @@ export default class UserController{
             const inputData  = req.body
 
             //getting data from models list
-            const usersData = await this.commonModel.list(inputData.filter, inputData.range, inputData.sort)
-            if (!usersData.length) {
-                return next({message:`users is not exist or deleted`})
+            const billsData = await this.commonModel.list(inputData.filter, inputData.range, inputData.sort)
+            if (!billsData.length) {
+                return next({message:`bills is not exist or deleted`})
             }
             // get total count from models list
-            const [{ total }] = await this.commonModel.list(inputData.filter, {}, {}, [`COUNT("${this.IdColumn}")::integer AS total`], true)
+            const [{ total }] = await this.commonModel.list(inputData.filter, {}, {}, [`COUNT("${this.idColumn}")::integer AS total`], true)
 
             // result
             const result = {
                 success: true,
                 message: `Result of your Search`,
                 total,
-                data: usersData
+                data: billsData
             }
             // return results
             return res.json(result)
@@ -48,10 +52,10 @@ export default class UserController{
 
             // get data from body 
             const inputData = await getObject(res, req.body, false)
-            const usersCreateData = inputData
+            const billsCreateData = inputData
 
             // error handling 
-            if (!usersCreateData || !Object.keys(usersCreateData).length) {
+            if (!billsCreateData || !Object.keys(billsCreateData).length) {
                 return next({
                     status: 400,
                     code: "invalid_request",
@@ -60,16 +64,16 @@ export default class UserController{
             }
 
             //using model function creating 
-            const usersData = await this.commonModel.create(usersCreateData)
-            if (!usersData) {
-                return next(usersData)
+            const billsData = await this.commonModel.create(billsCreateData)
+            if (!billsData) {
+                return next(billsData)
             }
 
             // result
             const result = {
                 success: true,
-                message: 'New users is Created Successfully',
-                data: usersData[0]
+                message: 'New bills is Created Successfully',
+                data: billsData[0]
             }
             // result return
             return res.json(result)
@@ -82,7 +86,7 @@ export default class UserController{
     async update(req: Request, res: Response, next: NextFunction) {
         try {
             // declare id and data             
-            const { usersId, ...inputData } = await getObject(res, req.body, true)
+            const { billsId, ...inputData } = await getObject(res, req.body, true)
             const updateData = inputData
 
             // error handling 
@@ -95,15 +99,15 @@ export default class UserController{
             }
 
             //updating data
-            await this.commonModel.update(usersId, updateData, next)
+            await this.commonModel.update(billsId, updateData, next)
 
             // finding data and show it in responce
-            const updatedResult = await this.commonModel.list({ usersId: usersId })
+            const updatedResult = await this.commonModel.list({ billsId: billsId })
 
             // result 
             const result = {
                 success: true,
-                message: `users updated successfully`,
+                message: `bills updated successfully`,
                 data: updatedResult[0]
             }
             // return 
@@ -121,21 +125,13 @@ export default class UserController{
             const { ids } = req.body
             const idArr = ids.map((id) => parseInt(id))
 
-            // check if data used in users 
-            // const checkIfInUse = await this.commonModelUser.list({ usersId: idArr })
-            // for (let i = 0; i < checkIfInUse.length; i++) {
-            //     if (checkIfInUse[i].length > 0) {
-            //         return res.status(400).send({ message: `Selected users Cannot Be deleted As it is mapped with users` })
-            //     }
-            // }
-
             // controller
             await this.commonModel.deleteItems(idArr, next)
 
             //   result
             const result = {
                 success: true,
-                message: `users ${idArr} deleted`
+                message: `bills ${idArr} deleted`
             }
             return res.send(result)
         } catch (error: any) {

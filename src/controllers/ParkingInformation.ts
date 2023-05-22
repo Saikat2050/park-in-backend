@@ -1,8 +1,9 @@
 import {Request, Response, NextFunction} from "express"
 import CommonModel from "../models/CommonModel"
+import { getObject } from "../utils/Helper"
 
 
-export default class ParkingInfoController{
+export default class ParkingInformationController{
     private commonModel
     private IdColumn
     constructor() {
@@ -80,7 +81,7 @@ export default class ParkingInfoController{
 
     async update(req: Request, res: Response, next: NextFunction) {
         try {
-            // declare id and data             
+            // declare id and data          
             const { parkingInfoId, ...inputData } = await getObject(res, req.body, true)
             const updateData = inputData
 
@@ -119,14 +120,6 @@ export default class ParkingInfoController{
             // getting data what to delete
             const { ids } = req.body
             const idArr = ids.map((id) => parseInt(id))
-
-            // check if data used in users 
-            // const checkIfInUse = await this.commonModelUser.list({ parkingInfoId: idArr })
-            // for (let i = 0; i < checkIfInUse.length; i++) {
-            //     if (checkIfInUse[i].length > 0) {
-            //         return res.status(400).send({ message: `Selected parkingInfo Cannot Be deleted As it is mapped with users` })
-            //     }
-            // }
 
             // controller
             await this.commonModel.deleteItems(idArr, next)

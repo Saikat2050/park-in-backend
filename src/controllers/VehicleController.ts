@@ -1,5 +1,6 @@
 import {Request, Response, NextFunction} from "express"
 import CommonModel from "../models/CommonModel"
+import { getObject } from "../utils/Helper"
 
 export default class VehicleController {
     private commonModel
