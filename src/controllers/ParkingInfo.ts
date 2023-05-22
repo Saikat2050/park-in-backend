@@ -1,14 +1,13 @@
 import {Request, Response, NextFunction} from "express"
 import CommonModel from "../models/CommonModel"
 
-export default class VehicleController {
+
+export default class ParkingInfoController{
     private commonModel
-    private commonModelUser
-    private vehicleIdColumn
+    private IdColumn
     constructor() {
-        this.vehicleIdColumn = "vehicleId"
-        this.commonModel = new CommonModel("vehicles", this.vehicleIdColumn, ["vehicleNumber"])
-        this.commonModelUser = new CommonModel("users", "userId", ["firstName", "lastName"])
+        this.IdColumn = "parkingInfoId"
+        this.commonModel = new CommonModel("parkingInformations", this.IdColumn, [])
         this.list = this.list.bind(this)
         this.create = this.create.bind(this)
         this.update = this.update.bind(this)
@@ -22,19 +21,19 @@ export default class VehicleController {
             const inputData  = req.body
 
             //getting data from models list
-            const vehicleData = await this.commonModel.list(inputData.filter, inputData.range, inputData.sort)
-            if (!vehicleData.length) {
-                return next({message:`vehicle is not exist or deleted`})
+            const parkingInfoData = await this.commonModel.list(inputData.filter, inputData.range, inputData.sort)
+            if (!parkingInfoData.length) {
+                return next({message:`parkingInfo is not exist or deleted`})
             }
             // get total count from models list
-            const [{ total }] = await this.commonModel.list(inputData.filter, {}, {}, [`COUNT("${this.vehicleIdColumn}")::integer AS total`], true)
+            const [{ total }] = await this.commonModel.list(inputData.filter, {}, {}, [`COUNT("${this.IdColumn}")::integer AS total`], true)
 
             // result
             const result = {
                 success: true,
                 message: `Result of your Search`,
                 total,
-                data: vehicleData
+                data: parkingInfoData
             }
             // return results
             return res.json(result)
@@ -48,10 +47,10 @@ export default class VehicleController {
 
             // get data from body 
             const inputData = await getObject(res, req.body, false)
-            const vehicleCreateData = inputData
+            const parkingInfoCreateData = inputData
 
             // error handling 
-            if (!vehicleCreateData || !Object.keys(vehicleCreateData).length) {
+            if (!parkingInfoCreateData || !Object.keys(parkingInfoCreateData).length) {
                 return next({
                     status: 400,
                     code: "invalid_request",
@@ -60,16 +59,16 @@ export default class VehicleController {
             }
 
             //using model function creating 
-            const vehicleData = await this.commonModel.create(vehicleCreateData)
-            if (!vehicleData) {
-                return next(vehicleData)
+            const parkingInfoData = await this.commonModel.create(parkingInfoCreateData)
+            if (!parkingInfoData) {
+                return next(parkingInfoData)
             }
 
             // result
             const result = {
                 success: true,
-                message: 'New vehicle is Created Successfully',
-                data: vehicleData[0]
+                message: 'New parkingInfo is Created Successfully',
+                data: parkingInfoData[0]
             }
             // result return
             return res.json(result)
@@ -82,7 +81,7 @@ export default class VehicleController {
     async update(req: Request, res: Response, next: NextFunction) {
         try {
             // declare id and data             
-            const { vehicleId, ...inputData } = await getObject(res, req.body, true)
+            const { parkingInfoId, ...inputData } = await getObject(res, req.body, true)
             const updateData = inputData
 
             // error handling 
@@ -95,15 +94,15 @@ export default class VehicleController {
             }
 
             //updating data
-            await this.commonModel.update(vehicleId, updateData, next)
+            await this.commonModel.update(parkingInfoId, updateData, next)
 
             // finding data and show it in responce
-            const updatedResult = await this.commonModel.list({ vehicleId: vehicleId })
+            const updatedResult = await this.commonModel.list({ parkingInfoId: parkingInfoId })
 
             // result 
             const result = {
                 success: true,
-                message: `vehicle updated successfully`,
+                message: `parkingInfo updated successfully`,
                 data: updatedResult[0]
             }
             // return 
@@ -122,12 +121,12 @@ export default class VehicleController {
             const idArr = ids.map((id) => parseInt(id))
 
             // check if data used in users 
-            const checkIfInUse = await this.commonModelUser.list({ vehicleId: idArr })
-            for (let i = 0; i < checkIfInUse.length; i++) {
-                if (checkIfInUse[i].length > 0) {
-                    return res.status(400).send({ message: `Selected vehicle Cannot Be deleted As it is mapped with users` })
-                }
-            }
+            // const checkIfInUse = await this.commonModelUser.list({ parkingInfoId: idArr })
+            // for (let i = 0; i < checkIfInUse.length; i++) {
+            //     if (checkIfInUse[i].length > 0) {
+            //         return res.status(400).send({ message: `Selected parkingInfo Cannot Be deleted As it is mapped with users` })
+            //     }
+            // }
 
             // controller
             await this.commonModel.deleteItems(idArr, next)
@@ -135,7 +134,7 @@ export default class VehicleController {
             //   result
             const result = {
                 success: true,
-                message: `vehicle ${idArr} deleted`
+                message: `parkingInfo ${idArr} deleted`
             }
             return res.send(result)
         } catch (error: any) {
@@ -143,6 +142,3 @@ export default class VehicleController {
         }
     }
 }
-
-
-
